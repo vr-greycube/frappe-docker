@@ -90,8 +90,6 @@ sudo docker compose up
 
 #### Create a site
 
-
-
 ```
 sudo docker ps | grep backend
 # copy id of frappe backend container to access the bench
@@ -106,9 +104,25 @@ bench new-site demo15.localhost --db-name demo15 --no-mariadb-socket
 
 
 
+### New Bench with a different frappe version
+
+- Copy an existing bench folder to a new bench folder 
+- Changes in .env file
+  - FRAPPE_VERSION
+- Changes in docker-compose.yml
+  - PYENV_VERSION
+  - services > mariadb > ports ..e.g. - "3307:3306"
+  - services > web > ports ..e.g. - "808X:80"
+
+
+
 ### DBeaver
 
-Install [DBeaver](https://dbeaver.io/download/) for quick db edits & writing SQL. Some util commands to fix DB issues from dbeaver
+Install [DBeaver](https://dbeaver.io/download/) for quick db edits & writing SQL. 
+
+
+
+- If a new site was created without the --no-mariadb-socket flag, can try to create user directly in db with DBeaver
 ```
 use myql;
 SELECT * from user;
