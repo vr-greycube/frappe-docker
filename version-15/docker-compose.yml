@@ -1,0 +1,127 @@
+x-frappe-service-defaults: &frappe_service_defaults
+    image: frappe/bench:latest
+    environment:
+      PYENV_VERSION: 3.11
+    volumes:
+      - ./frappe-bench:/home/frappe/frappe-bench
+
+x-frappe-service-depends: &frappe_service_depends
+    depends_on:
+      - mariadb
+      - redis-cache
+      - redis-queue
+
+x-wait-for-configurator: &wait_for_configurator
+  entrypoint:
+    - /bin/bash
+    - -c
+    - |
+      if [ ! -f /home/frappe/frappe-bench/.configured ]; then
+        echo "Waiting for configuration to be completed...";
+        while [ ! -f /home/frappe/frappe-bench/.configured ]; do sleep 60; done;
+      fi
+      echo "Configuration detected, proceeding with the following command:" &&
+      echo "$$@" &&
+      exec "$$@"
+  restart: always
+
+services:
+  mariadb:
+    image: mariadb:10.6
+    restart: always
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    ports:
+    - "3306:3306"
+
+
+  redis-cache:
+    image: redis:alpine
+    restart: always
+
+  redis-queue:
+    image: redis:alpine
+    restart: always
+
+  configurator:
+    <<: *frappe_service_defaults
+    entrypoint:
+      - bash
+      - -c
+    command:
+      - >
+        if [ ! -f /home/frappe/frappe-bench/.configured ]; then
+          sudo chown -R frappe:frappe /home/frappe/frappe-bench &&
+          rm -rf /home/frappe/frappe-bench/* &&
+          bench init --skip-redis-config-generation --version=${FRAPPE_VERSION} \
+          --ignore-exist /home/frappe/frappe-bench &&
+          bench set-config -g db_type mariadb &&
+          bench set-config -g db_host mariadb &&
+          bench set-config -g redis_cache redis://redis-cache:6379 &&
+          bench set-config -g redis_queue redis://redis-queue:6379 &&
+          bench set-config -g redis_socketio redis://redis-queue:6379 &&
+          bench set-config -gp socketio_port 9000 &&
+          bench set-config -gp developer_mode 1 &&
+          bench set-config -gp mute_emails 1 &&
+          touch /home/frappe/frappe-bench/.configured
+        else
+          echo "Configuration already completed."
+        fi
+    working_dir: /home/frappe/frappe-bench
+
+  backend:
+    <<: [*frappe_service_defaults, *frappe_service_depends, *wait_for_configurator]
+    command: exec /home/frappe/frappe-bench/env/bin/gunicorn -b 0.0.0.0:8000 -w 4 --max-requests 1200 --max-requests-jitter 50 -t 120 frappe.app:application --preload
+    environment:
+      - GUNICORN_CMD_ARGS=--access-logfile /home/frappe/frappe-bench/logs/web.log --error-logfile /home/frappe/frappe-bench/logs/web.error.log
+    working_dir: /home/frappe/frappe-bench/sites
+
+  websocket:
+    <<: [*frappe_service_defaults, *frappe_service_depends, *wait_for_configurator]
+    command: exec node apps/frappe/socketio.js
+    working_dir: /home/frappe/frappe-bench
+
+  watch:
+    <<: [*frappe_service_defaults, *frappe_service_depends, *wait_for_configurator]
+    command: exec bench watch
+    working_dir: /home/frappe/frappe-bench
+
+  schedule:
+    <<: [*frappe_service_defaults, *frappe_service_depends, *wait_for_configurator]
+    command: exec bench schedule
+    working_dir: /home/frappe/frappe-bench
+
+  worker_short:
+    <<: [*frappe_service_defaults, *frappe_service_depends, *wait_for_configurator]
+    command: exec bench worker --queue short
+    working_dir: /home/frappe/frappe-bench
+
+  worker_long:
+    <<: [*frappe_service_defaults, *frappe_service_depends, *wait_for_configurator]
+    command: exec bench worker --queue long
+    working_dir: /home/frappe/frappe-bench
+
+  worker_default:
+    <<: [*frappe_service_defaults, *frappe_service_depends, *wait_for_configurator]
+    command: exec bench worker --queue default
+    working_dir: /home/frappe/frappe-bench
+
+  web:
+    image: caddy:2-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./frappe-bench:/home/frappe/frappe-bench
+    depends_on:
+      - backend
+      - websocket
+
+volumes:
+  mariadb-data:
