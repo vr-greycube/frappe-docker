@@ -146,6 +146,13 @@ RENAME USER 'DEMO15'@'%' TO 'demo15'@'%' IDENTIFIED BY 'site_config-password';
 GRANT ALL PRIVILEGES ON demo15.* To 'demo15'@'%' IDENTIFIED BY 'site_config-password';
 ```
 
+
+stop and remove all containers
+```
+docker stop $(docker ps -a -q)
+docker rm $(docker ps -a -q)
+```
+
 #### Debug with VSCode
 
 
