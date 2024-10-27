@@ -1,7 +1,7 @@
 x-frappe-service-defaults: &frappe_service_defaults
     image: frappe/bench:latest
     environment:
-      PYENV_VERSION: 3.11
+      PYENV_VERSION: ${PYENV_VERSION}
     volumes:
       - ./frappe-bench:/home/frappe/frappe-bench
 
@@ -38,7 +38,7 @@ services:
     volumes:
       - mariadb-data:/var/lib/mysql
     ports:
-    - "3306:3306"
+    - "${MARIADB_PORT}:3306"
 
 
   redis-cache:
@@ -115,7 +115,7 @@ services:
   web:
     image: caddy:2-alpine
     ports:
-      - "8080:80"
+      - "${WEB_PORT}:80"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - ./frappe-bench:/home/frappe/frappe-bench

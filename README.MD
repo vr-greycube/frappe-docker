@@ -119,10 +119,9 @@ bench new-site demo15.localhost --db-name demo15 --no-mariadb-socket
 - Changes in .env file
   - FRAPPE_VERSION
   - PYENV_VERSION
-- Changes in docker-compose.yml
-  - services > mariadb > ports ..e.g. - "3307:3306"
-  - services > web > ports ..e.g. - "808X:80"
-  - Note: sites created in this bench will be accessible at site_name.localhost:808X on the host
+  - MARIADB_PORT
+  - WEB_PORT
+  - Note: sites created in this bench will be accessible at site_name.localhost:WEB_PORT on the host
 
 
 #### bench helper
