@@ -87,36 +87,52 @@ sudo docker compose up
 
 ```
 
+#### To access the bench inside the container from host
+```
+# copy id of frappe backend container to access the bench
+sudo docker ps | grep backend
+
+sudo docker exec -t <container-id> /bin/bash
+
+```
+
+#### Install apps
+```
+bench get-app erpnext --branch version-15
+```
+
 
 #### Create a site
 
 ```
-sudo docker ps | grep backend
-# copy id of frappe backend container to access the bench
-
-sudo docker exec -t <container-id> /bin/bash
-
 # once inside container, use bench as usual
+
 # IMPORTANT: use --no-mariadb-socket. 
 # Else the db user is created as xyz@a.b.c.d and will not be able to connect as the container IP changes (on restart)
+
 bench new-site demo15.localhost --db-name demo15 --no-mariadb-socket
 ```
 
+#### New Bench with a different frappe version
 
-
-### New Bench with a different frappe version
-
-- Copy an existing bench folder to a new bench folder 
+- Create a folder for the new bench and copy the files (excluding frappe-bench dir) from version-15
 - Changes in .env file
   - FRAPPE_VERSION
-- Changes in docker-compose.yml
   - PYENV_VERSION
+- Changes in docker-compose.yml
   - services > mariadb > ports ..e.g. - "3307:3306"
   - services > web > ports ..e.g. - "808X:80"
+  - Note: sites created in this bench will be accessible at site_name.localhost:808X on the host
 
 
+#### bench helper
+bench.sh is a script to launch a shell inside the container in the bench folder
+```
+sudo chmod +x ./bench.sh
+./bench.sh
+```
 
-### DBeaver
+#### DBeaver
 
 Install [DBeaver](https://dbeaver.io/download/) for quick db edits & writing SQL. 
 
