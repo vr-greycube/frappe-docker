@@ -82,10 +82,27 @@ https://docs.docker.com/compose/how-tos/environment-variables/set-environment-va
 
 ```
 git clone https://github.com/vr-greycube/frappe-docker
+cd frappe-docker/version-15
+sudo docker compose up
+
+```
 
 
-#### IMPORTANT:
-when creating new site use **--no-mariadb-socket** .. else the db user is created as xyz@a.b.c.d and will not be able to connect if the container IP changes (on restart)
+#### Create a site
+
+
+
+```
+sudo docker ps | grep backend
+# copy id of frappe backend container to access the bench
+
+sudo docker exec -t <container-id> /bin/bash
+
+# once inside container, use bench as usual
+# IMPORTANT: use --no-mariadb-socket. 
+# Else the db user is created as xyz@a.b.c.d and will not be able to connect as the container IP changes (on restart)
+bench new-site demo15.localhost --db-name demo15 --no-mariadb-socket
+```
 
 
 
