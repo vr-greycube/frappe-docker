@@ -92,7 +92,7 @@ sudo docker compose up
 # copy id of frappe backend container to access the bench
 sudo docker ps | grep backend
 
-sudo docker exec -t <container-id> /bin/bash
+sudo docker exec -it <container-id> /bin/bash
 
 ```
 
