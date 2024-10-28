@@ -47,7 +47,7 @@ use the latest release url in command below
 
 ```
 mkdir -p ~/.docker/cli-plugins/
-curl -SL https://github.com/docker/compose/releases/download/v2.3.3/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
+curl -SL https://github.com/docker/compose/releases/download/v2.x.x/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
 chmod +x ~/.docker/cli-plugins/docker-compose
 ```
 
@@ -96,13 +96,13 @@ sudo docker exec -t <container-id> /bin/bash
 
 ```
 
-#### Install apps
+#### To install apps
 ```
 bench get-app erpnext --branch version-15
 ```
 
 
-#### Create a site
+#### To create a site
 
 ```
 # once inside container, use bench as usual
@@ -113,9 +113,9 @@ bench get-app erpnext --branch version-15
 bench new-site demo15.localhost --db-name demo15 --no-mariadb-socket
 ```
 
-#### New Bench with a different frappe version
+#### To create a new Bench
 
-- Create a folder for the new bench and copy the files (excluding frappe-bench dir) from version-15
+- Create a folder for the new bench and copy the files (excluding frappe-bench dir) from version-15 or version-14
 - Changes in .env file
   - FRAPPE_VERSION
   - PYENV_VERSION
@@ -147,7 +147,7 @@ GRANT ALL PRIVILEGES ON demo15.* To 'demo15'@'%' IDENTIFIED BY 'site_config-pass
 ```
 
 
-stop and remove all containers
+To stop and remove all containers
 ```
 docker stop $(docker ps -a -q)
 docker rm $(docker ps -a -q)
